@@ -3,7 +3,7 @@ import { BACKEND_URL } from '@/constants/urls';
 import { useAuthStore } from '@/store/authStore';
 import { router, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Keyboard } from 'react-native';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -13,7 +13,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     console.log("Login button pressed");
-   
+   Keyboard.dismiss();
     if (!email || !password) {
         Alert.alert("Error","Please fill in all fields.");
         return;
@@ -34,6 +34,7 @@ export default function LoginScreen() {
         console.log(data);
         if(!res.ok){
             setLoading(false);
+            Alert.alert("Error", data.error || data?.errors?.join(",") || data.message ||  "Invalid credentials");
             console.log("Invalid credentials", data);
             return;
         }

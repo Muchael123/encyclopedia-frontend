@@ -11,17 +11,21 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ScrollView,
+  Keyboard
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import { useUserStore } from "@/store/emailstore";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [agree, setAgree] = useState(false);
+  const [agree, setAgree] = useState(true);
   const [username, setUserName] = useState("");
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const [securepass, setsecurepass] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -39,6 +43,10 @@ export default function RegisterScreen() {
       !validateEmail(email) ||
       !validatePassword(password) ||
       !validateConfirm(confirm)
+      || username.length < 3
+      || password.length < 6
+      || !validateConfirm(confirm)
+      || !validateEmail(email)
     ) {
       Alert.alert("Error", "Validate your credentials and try again");
       return;
@@ -51,8 +59,10 @@ export default function RegisterScreen() {
       return;
     }
     console.log("Register button pressed");
-
+    Keyboard.dismiss();
     try {
+      setLoading(true);
+      console.log("Registering user...", email, password, username);
       const res = await fetch(`${BACKEND_URL}auth/register`, {
         method: "POST",
         headers: {
@@ -66,10 +76,29 @@ export default function RegisterScreen() {
       });
       const data = await res.json();
       console.log(data);
+      if (!res.ok) {
+        Alert.alert(
+          "Error",
+          data.error
+            ? data.error
+            : "An error occurred while registering."
+        );
+        return;
+      }
+      setEmail("");
+      setUserName("");
+      setPassword("");
+      setConfirm("");
+      Alert.alert("Success", "Registration successful!");
+      //set useremail in zustand store
+      useUserStore.setState({ email });
+      return router.push("/(auth)/validate-email");
     } catch (err) {
       console.error(err);
       Alert.alert("Error", "An error occurred while registering.");
+
     } finally {
+      setLoading(false);
     }
   };
 
@@ -86,8 +115,31 @@ export default function RegisterScreen() {
         <Text style={{ color: Colors.white, fontSize: 30, fontWeight: "400" }}>
           Wecome to Teacher Bomba
         </Text>
+        {
+          username.length < 3 && (
+            <Text style={styles.green}>
+              ✔ Username must be at least 3 characters
+            </Text>
+          )
+        }
+        {password.length < 6 && (
+            <Text style={styles.green}>
+              ✔ Password must be at least 6 characters
+            </Text>
+          )}
+          {confirm !== password && (
+            <Text style={styles.green}>
+              ✔ Password and confirmation should match
+            </Text>
+          )}
+          {!validateEmail(email) && ( 
+            <Text style={styles.green}>
+              ✔ Email should be valid
+            </Text>
+          )}
+          
       </View>
-      <KeyboardAwareScrollView style={styles.seconddiv}>
+      <ScrollView style={styles.seconddiv}>
         <Text style={styles.heading}>We are Glad you decided to Join us</Text>
         <Text style={styles.subheading}>Register to continue</Text>
         <View style={{ width: "100%", marginVertical: 8 }}>
@@ -132,11 +184,7 @@ export default function RegisterScreen() {
               onPress={() => setSecureTextEntry((prev) => !prev)}
             />
           </View>
-          {password.length <= 6 && (
-            <Text style={styles.green}>
-              ✔ Password must be at least 6 characters
-            </Text>
-          )}
+          
         </View>
         <View style={{ width: "100%", marginBottom: 8 }}>
           <Text>Confirm Password</Text>
@@ -156,7 +204,7 @@ export default function RegisterScreen() {
             <Icon
               name={securepass ? "eye" : "eye-off"}
               color={Colors.gray}
-              onPress={() => setSecureTextEntry((prev) => !prev)}
+              onPress={() => setsecurepass((prev) => !prev)}
             />
           </View>
         </View>
@@ -170,14 +218,28 @@ export default function RegisterScreen() {
           <TouchableOpacity
             onPress={() => setAgree((prev) => !prev)}
             style={styles.checkbox}
-          ></TouchableOpacity>
+          >
+            {agree && (
+              <FontAwesome6 name="check" size={18} color={Colors.purple} />
+            )}
+          </TouchableOpacity>
           <Text>
             I agree with the <Text style={styles.link}>Terms & conditions</Text>
           </Text>
         </View>
 
-        <TouchableOpacity onPress={handleRegister} style={styles.button}>
-          <Text style={styles.buttonText}>Register</Text>
+        <TouchableOpacity onPress={handleRegister} style={styles.button} disabled={loading}>
+          {loading && (
+            <FontAwesome6
+              name="spinner"
+              size={18}
+              color={Colors.white}
+              style={{ marginRight: 10 }}
+            />
+          )}
+          <Text style={styles.buttonText}>
+            {loading ? "Loading..." : "Register"}
+            </Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.navigate("/(auth)/login")}>
@@ -185,7 +247,12 @@ export default function RegisterScreen() {
             Already have an account? Log In Here
           </Text>
         </TouchableOpacity>
-      </KeyboardAwareScrollView>
+        <TouchableOpacity onPress={() => router.navigate("/(auth)/validate-email")}>
+          <Text style={styles.footerText}>
+            Already have a code? Verify Here
+          </Text> 
+        </TouchableOpacity>
+      </ScrollView>
     </View>
   );
 }
@@ -207,6 +274,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#000",
     marginRight: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 4,
   },
   link: { textDecorationLine: "underline" },
   button: {
@@ -215,6 +285,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginVertical: 10,
     alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 10,
   },
   buttonText: { color: "#fff", fontWeight: "bold" },
   firstdiv: {
@@ -232,9 +305,11 @@ const styles = StyleSheet.create({
   },
   footerText: { textAlign: "center", marginTop: 20, color: "#2d0b4e" },
   inputView: {
-    backgroundColor: "white",
+    backgroundColor: "#f0f0f0",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.gray,
     borderRadius: 10,
-    padding: 10,
+    padding: 6,
     marginTop: 10,
     flexDirection: "row",
     justifyContent: "space-between",
