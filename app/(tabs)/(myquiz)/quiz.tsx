@@ -2,7 +2,10 @@ import Colors from "@/constants/Colors";
 import { BACKEND_URL } from "@/constants/urls";
 import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { router } from "expo-router";
+
 type QuizType = {
     _id: string;
     completed: boolean;
@@ -74,14 +77,44 @@ export default function QuizesList(){
             </View>
         )
     }
+
+    const handleAnswer = (quizid: string, topicname: string) => {
+        console.log("Answer quiz", quizid);
+        router.push({
+            pathname: "/(tabs)/(myquiz)/[quizid]",
+            params:{quizid, topicname}
+        });
+        
+    }
+    const checkmyAnswers = (quizid: string, topicname: string) => {
+        console.log("Answer quiz", quizid);
+        router.push({
+            pathname: "/(tabs)/(myquiz)/myAnswers/[id]",
+            params:{quizid, topicname}
+        });
+        
+    }
     return(
-       <ScrollView style={styles.container}>
+       <ScrollView style={styles.container}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+            refreshControl={
+                <RefreshControl refreshing={loading} onRefresh={fetchQuizzes} colors={[Colors.purple]} tintColor={Colors.purple} title="Refreshing..." titleColor={Colors.purple} progressBackgroundColor={Colors.white} progressViewOffset={100} />
+            }
+            contentContainerStyle={{paddingBottom: 100}}
+            nestedScrollEnabled={true}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+        >
             {quizes?.map((quiz) => (
-                <Pressable key={quiz._id} style={styles.quizCard} >
+                <View key={quiz._id} style={styles.quizCard} >
                     <Text style={{fontSize: 16, fontWeight: "bold"}}>{quiz.topicid.name}</Text>
-                    <Text style={{fontSize: 14}}>Total Points: {quiz.totalPoints}</Text>
-                    <Text style={{fontSize: 14}}>Completed: {quiz.completed ? "Yes" : "No"}</Text>
-                </Pressable>
+                    <Text style={{fontSize: 14}}> <MaterialCommunityIcons name="credit-card-edit" size={24} color="black" /> Total Points: {quiz.totalPoints}</Text>
+                    <Text style={{fontSize: 14, color: quiz.completed? Colors.purple : Colors.danger}}>Completed: {quiz.completed ? "Yes" : "No"}</Text>
+                    <Pressable onPress={()=> quiz.completed?checkmyAnswers(quiz._id, quiz.topicid.name) :handleAnswer(quiz._id, quiz.topicid.name) } style={{padding: 10, backgroundColor: quiz.completed ? Colors.purple : Colors.yellow, borderRadius: 5, marginTop: 10, alignItems: "center", justifyContent: "center"}}>
+                        <Text style={{color: "white"}}>{quiz.completed ? "Check My Scores" : "Answer this Test"}</Text>
+                    </Pressable>
+                </View>
             ))}
        </ScrollView>
     )
@@ -90,11 +123,23 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingHorizontal: 16,
+        paddingTop: 16,
+        paddingBottom: 100,
     },
     errorText: {
         color: "red",
         fontSize: 16,
         textAlign: "center",
     },
-    quizCard: {padding: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: Colors.purple, marginBottom: 10, backgroundColor: "white"}
+    quizCard: {
+        padding: 10,
+         borderWidth: StyleSheet.hairlineWidth,
+          borderColor: Colors.gray,
+           marginBottom: 10,
+            backgroundColor: "white",
+            elevation: 6,
+            borderRadius: 10,
+            shadowColor: "black",
+            gap: 5,
+        }
 })
