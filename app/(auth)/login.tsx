@@ -68,6 +68,7 @@ export default function LoginScreen() {
         onChangeText={setEmail}
         style={styles.input}
         keyboardType="email-address"
+        inputMode="email"
       />
       {!email.includes('@') && email !== '' && (
         <Text style={styles.error}>Your email is invalid.</Text>

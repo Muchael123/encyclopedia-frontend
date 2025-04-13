@@ -9,6 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+
 } from "react-native";
 import { router } from "expo-router";
 import { BACKEND_URL } from "@/constants/urls";
@@ -25,7 +26,8 @@ type QuizContainerProps = {
     selected: string,
   ) => void;
   score: QuizScore[] | undefined;
-  id: string | undefined
+  id: string | undefined;
+
 };
 export default function QuizContainer({
   quiz,
@@ -35,6 +37,7 @@ export default function QuizContainer({
   addQuizScore,
   score,
   id,
+    topicName,
 }: QuizContainerProps) {
   console.log("Quiz data", id);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -46,7 +49,8 @@ export default function QuizContainer({
         selectedOption,
       );
     }
-    if(index >= quizlength - 1) {
+    if(index >= quizlength - 1 ){
+        
       handleSubmit();
     }
     else {
@@ -55,14 +59,13 @@ export default function QuizContainer({
   };
 
   const handleSubmit = async () => {
-    if(!score || score?.length < quizlength-1) {
-      Alert.alert("Please answer all questions before submitting.");
-      return;
-    }
+    if(!score || score?.length < quizlength) {
+        Alert.alert("Please answer all questions before submitting.");
+        return;
+      }
     if(!id){
         Alert.alert("Error", "Quiz ID is missing. Returning to home.");
-        router.replace("/(tabs)/myquiz")
-        return;
+        router.replace("/(tabs)/(myquiz)/quiz");
     }
     console.log("Submitting quiz scores", score);
     try{
@@ -85,7 +88,10 @@ export default function QuizContainer({
         }
         console.log("Quiz scores submitted successfully", result);
         Alert.alert("Success", "Quiz scores submitted successfully.");
-        router.push("/(tabs)");
+        router.replace({
+            pathname:"/(tabs)/(myquiz)/myAnswers/[id]",
+            params: { id: result._id, topicname: topicName },
+        } );
     } catch(err){
         console.log("Error submitting quiz scores", err);
         Alert.alert("Error", "Failed to submit quiz scores. Please try again.");

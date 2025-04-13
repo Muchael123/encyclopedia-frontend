@@ -159,7 +159,9 @@ export default function RegisterScreen() {
             value={email}
             onChangeText={setEmail}
             style={styles.input}
-            maxLength={60}
+            inputMode="email"
+            autoCapitalize="none"
+        keyboardType="email-address"
           />
         </View>
 
@@ -176,6 +178,8 @@ export default function RegisterScreen() {
               onChangeText={handlePasswordChange}
               returnKeyType="next"
               cursorColor={Colors.purple}
+              autoCapitalize="none"
+              autoComplete="password"
             />
 
             <Icon
@@ -199,6 +203,9 @@ export default function RegisterScreen() {
               onChangeText={handleConfirmPasswordChange}
               returnKeyType="next"
               cursorColor={Colors.purple}
+              autoCapitalize="none"
+              autoComplete="password"
+
             />
 
             <Icon

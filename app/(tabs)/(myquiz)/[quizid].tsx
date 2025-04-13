@@ -86,7 +86,7 @@ export default function AnswerQuiz() {
         const backAction = () => {
             Alert.alert("Hold on!", "Are you sure you want to go back? You will lose All your quiz information", [
                 
-                { text: "YES", onPress: () => router.back() },
+                { text: "YES", onPress: () => router.replace("/(tabs)/(myquiz)/quiz") },
                 {
                     text: "No, cancel",
                     onPress: () => null,

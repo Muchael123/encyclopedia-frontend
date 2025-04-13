@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
+import { router } from 'expo-router';
 
 type User = {
   username: string;
@@ -35,6 +36,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     await SecureStore.deleteItemAsync(SECURE_TOKEN_KEY);
     await SecureStore.deleteItemAsync(SECURE_USER_KEY);
     set({ user: null, token: null });
+    router.replace("/(auth)/login");
   },
 
   restoreToken: async () => {

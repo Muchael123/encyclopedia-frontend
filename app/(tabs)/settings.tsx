@@ -1,9 +1,17 @@
-import { StyleSheet,Text, View } from 'react-native';
+import Colors from '@/constants/Colors';
+import { useAuthStore } from '@/store/authStore';
+import { StyleSheet,Text, TouchableOpacity, View } from 'react-native';
 
 export default function TabTwoScreen() {
+  const {logout} = useAuthStore((state) => state);
+  const handlelogout = () => {
+    logout();
+  }
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab Two</Text>
+      <TouchableOpacity style={styles.logoutbtn} onPress={handlelogout}>
+        <Text style={styles.title}>Logout</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -17,10 +25,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
+    width: "100%",
+    textAlign: "center",
+    color: Colors.white
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+  logoutbtn: {
+    backgroundColor: Colors.purple,
+    padding: 10,
+    borderRadius: 10,
+    width: "80%",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

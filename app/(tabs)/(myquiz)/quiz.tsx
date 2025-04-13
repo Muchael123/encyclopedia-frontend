@@ -2,7 +2,7 @@ import Colors from "@/constants/Colors";
 import { BACKEND_URL } from "@/constants/urls";
 import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, Touchable, TouchableOpacity, View } from "react-native";
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from "expo-router";
 
@@ -14,6 +14,7 @@ type QuizType = {
         name: string;
     };
     totalPoints: number;
+    totalScore: number;
 }
 export default function QuizesList(){
     const [quizes, setQuizes] = useState <QuizType[] | null>();
@@ -38,7 +39,7 @@ export default function QuizesList(){
                 setError(data.error || data?.errors?.join(",") || data.message ||  "Error getting quizzes");
                 return;
             }
-            console.log("Quizzes fetched successfully");
+            console.log("Quizzes fetched successfully", data.quizes[1]);
             setQuizes(data.quizes);
         }
         catch(err){
@@ -74,6 +75,13 @@ export default function QuizesList(){
         return(
             <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
                 <Text>No quizzes found</Text>
+                <Pressable onPress={()=> router.replace("/(tabs)/(home)")} style={{padding: 10, backgroundColor: Colors.purple, borderRadius: 5, marginTop: 10}}>
+                    <Text style={{color: "white"}}>Create one Here</Text>
+                </Pressable>
+                <Text>Try refreshing</Text>
+                <TouchableOpacity onPress={fetchQuizzes} style={{padding: 10, backgroundColor: Colors.purple, borderRadius: 5, marginTop: 10}}>
+                    <Text style={{color: "white"}}>Refresh</Text>
+                </TouchableOpacity>
             </View>
         )
     }
@@ -90,7 +98,7 @@ export default function QuizesList(){
         console.log("Answer quiz", quizid);
         router.push({
             pathname: "/(tabs)/(myquiz)/myAnswers/[id]",
-            params:{quizid, topicname}
+            params:{ id: quizid, topicname}
         });
         
     }
@@ -111,6 +119,7 @@ export default function QuizesList(){
                     <Text style={{fontSize: 16, fontWeight: "bold"}}>{quiz.topicid.name}</Text>
                     <Text style={{fontSize: 14}}> <MaterialCommunityIcons name="credit-card-edit" size={24} color="black" /> Total Points: {quiz.totalPoints}</Text>
                     <Text style={{fontSize: 14, color: quiz.completed? Colors.purple : Colors.danger}}>Completed: {quiz.completed ? "Yes" : "No"}</Text>
+                    <Text style={{fontSize: 14}}> <MaterialCommunityIcons name="credit-card-edit" size={24} color="black" /> MyScore: {quiz.totalScore} / {quiz.totalPoints}</Text>
                     <Pressable onPress={()=> quiz.completed?checkmyAnswers(quiz._id, quiz.topicid.name) :handleAnswer(quiz._id, quiz.topicid.name) } style={{padding: 10, backgroundColor: quiz.completed ? Colors.purple : Colors.yellow, borderRadius: 5, marginTop: 10, alignItems: "center", justifyContent: "center"}}>
                         <Text style={{color: "white"}}>{quiz.completed ? "Check My Scores" : "Answer this Test"}</Text>
                     </Pressable>
